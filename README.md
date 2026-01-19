@@ -9,9 +9,9 @@
 
 --Example:  
 Main/  
-&nbsp;&nbsp;  Vectors/  
-    &nbsp;&nbsp;&nbsp;&nbsp;Defs.lean   : Basic definitions of vector spaces and vectors  
-    &nbsp;&nbsp;&nbsp;&nbsp;Lin.lean    : Definition of Linear maps  
+&nbsp;&nbsp;Vectors/  
+&nbsp;&nbsp;&nbsp;&nbsp;Defs.lean   : Basic definitions of vector spaces and vectors  
+&nbsp;&nbsp;&nbsp;&nbsp;Lin.lean    : Definition of Linear maps  
 &nbsp;&nbsp;iwasawa.lean  : Proof of the main theorem  
 &nbsp;&nbsp;tactic.lean   : A tactic that solves vector addition problems  
   
