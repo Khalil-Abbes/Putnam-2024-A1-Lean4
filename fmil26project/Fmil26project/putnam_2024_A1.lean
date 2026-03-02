@@ -1,15 +1,13 @@
 import Mathlib
 
-
-
 set_option linter.unnecessarySimpa false
 set_option linter.style.emptyLine false
 
 
+/-- Author: Mohamed Khalil Abbes -/
+
 
 noncomputable abbrev putnam_2024_a1_solution : Set ℕ := {1}
-
-
 
 /--
 Auxiliary predicate: `sol n a b c` means `a,b,c` are positive naturals
@@ -18,23 +16,17 @@ solving `2*a^n + 3*b^n = 4*c^n`.
 def sol (n a b c : ℕ) : Prop :=
   0 < a ∧ 0 < b ∧ 0 < c ∧ 2 * a^n + 3 * b^n = 4 * c^n
 
-
-
 lemma sol_pos_a {n a b c : ℕ} (h : sol n a b c) : 0 < a := h.1
 lemma sol_pos_b {n a b c : ℕ} (h : sol n a b c) : 0 < b := h.2.1
 lemma sol_pos_c {n a b c : ℕ} (h : sol n a b c) : 0 < c := h.2.2.1
 lemma sol_eqn {n a b c : ℕ} (h : sol n a b c) :
     2 * a^n + 3 * b^n = 4 * c^n := h.2.2.2
 
-
-
 /-- A concrete solution for `n = 1`: `(a,b,c) = (1,2,2)`. -/
 lemma sol_n1_example : sol 1 1 2 2 := by
   unfold sol
   refine ⟨by decide, by decide, by decide, ?_⟩
   norm_num
-
-
 
 /-- For `n ≥ 3`, any solution `(a,b,c)` gives a strictly smaller solution. -/
 lemma descent_step_ge3 {n a b c : ℕ} (hn : 3 ≤ n) (h : sol n a b c) :
@@ -46,16 +38,12 @@ lemma descent_step_ge3 {n a b c : ℕ} (hn : 3 ≤ n) (h : sol n a b c) :
   have hc_pos := sol_pos_c h
   have heqn := sol_eqn h
 
-
-
   -- Overall plan (infinite descent step for n≥3):
   -- (1) show b is even (mod 2 argument),
   -- (2) show a is even (mod 4 argument),
   -- (3) show c is even (mod 8 argument),
   -- then write a = 2 * a1, b = 2 * b1, c = 2 * c1 and
   -- divide out 2^n to get a smaller solution.
-
-
 
   -- 1) b even
   have hb_even : Even b := by
@@ -67,20 +55,14 @@ lemma descent_step_ge3 {n a b c : ℕ} (hn : 3 ≤ n) (h : sol n a b c) :
       -- Replace RHS by LHS using the equation.
       simpa [heqn] using h4mod
 
-
-
     -- Split the mod of a sum.
     have hsum_mod' : ((2 * a^n) % 2 + (3 * b^n) % 2) % 2 = 0 := by
       simpa [Nat.add_mod] using hsum_mod
-
-
 
     -- 2 divides 2*a^n, so (2*a^n)%2 = 0.
     have h2dvd : 2 ∣ 2 * a^n := by
       exact dvd_mul_of_dvd_left (dvd_rfl : 2 ∣ 2) (a^n)
     have h2mod : (2 * a^n) % 2 = 0 := Nat.mod_eq_zero_of_dvd h2dvd
-
-
 
     -- Therefore (3*b^n)%2 = 0, hence 2 ∣ 3*b^n.
     have h3bn_mod : (3 * b^n) % 2 = 0 := by
@@ -89,26 +71,18 @@ lemma descent_step_ge3 {n a b c : ℕ} (hn : 3 ≤ n) (h : sol n a b c) :
       simpa using this
     have h2_dvd_3bn : 2 ∣ 3 * b^n := Nat.dvd_of_mod_eq_zero h3bn_mod
 
-
-
     -- Cancel the factor 3 using gcd(2,3)=1, getting 2 ∣ b^n.
     -- Euclid’s lemma in a coprime form
     have hcop : Nat.Coprime 2 3 := by decide
     have h2_dvd_bpow : 2 ∣ b^n := hcop.dvd_of_dvd_mul_left h2_dvd_3bn
 
-
-
     -- Prime 2 dividing b^n implies 2 divides b.
     have h2_dvd_b : 2 ∣ b := Nat.Prime.dvd_of_dvd_pow Nat.prime_two h2_dvd_bpow
-
-
 
     -- Turn 2 ∣ b into Even b.
     rcases h2_dvd_b with ⟨t, ht⟩
     refine ⟨t, ?_⟩
     simpa [ht, two_mul, Nat.mul_comm, Nat.mul_left_comm, Nat.mul_assoc]
-
-
 
   -- Introduce b1 with b = 2*b1 (and show b1>0).
   rcases hb_even with ⟨b1, hb1⟩
@@ -121,13 +95,9 @@ lemma descent_step_ge3 {n a b c : ℕ} (hn : 3 ≤ n) (h : sol n a b c) :
     exact (Nat.lt_irrefl 0) this
   have hb1_pos : 0 < b1 := Nat.pos_of_ne_zero hb1_ne0
 
-
-
   -- Rewrite equation with b = 2*b1.
   have h1 : 2 * a^n + 3 * (2 * b1)^n = 4 * c^n := by
     simpa [hb1_2] using heqn
-
-
 
   -- 2) a even
   have ha_even : Even a := by
@@ -143,22 +113,16 @@ lemma descent_step_ge3 {n a b c : ℕ} (hn : 3 ≤ n) (h : sol n a b c) :
     have h4_dvd_3term : 4 ∣ 3 * (2 * b1) ^ n :=
       dvd_mul_of_dvd_right h4_dvd_2b1pow 3
 
-
-
     -- RHS is divisible by 4, so LHS is divisible by 4.
     have h4rhs : 4 ∣ 4 * c ^ n := ⟨c ^ n, rfl⟩
     have h4sum : 4 ∣ 2 * a ^ n + 3 * (2 * b1) ^ n := by
       simpa [h1] using h4rhs
-
-
 
     -- Reorder and cancel the known divisible term to get 4 ∣ 2*a^n.
     have h4sum' : 4 ∣ 3 * (2 * b1) ^ n + 2 * a ^ n := by
       simpa [Nat.add_assoc, Nat.add_left_comm, Nat.add_comm] using h4sum
     have h4_2an : 4 ∣ 2 * a ^ n :=
       (Nat.dvd_add_iff_right h4_dvd_3term).2 h4sum'
-
-
 
     -- From 4 ∣ 2*a^n, we get 2 ∣ a^n, hence 2 ∣ a, hence Even a.
     rcases h4_2an with ⟨t, ht⟩
@@ -171,8 +135,6 @@ lemma descent_step_ge3 {n a b c : ℕ} (hn : 3 ≤ n) (h : sol n a b c) :
     rcases h2_dvd_a with ⟨k, hk⟩
     exact ⟨k, by simpa [two_mul] using hk⟩
 
-
-
   -- Introduce a1 with a = 2*a1 (and show a1>0).
   rcases ha_even with ⟨a1, ha1⟩
   have ha1_2 : a = 2 * a1 := by
@@ -184,13 +146,9 @@ lemma descent_step_ge3 {n a b c : ℕ} (hn : 3 ≤ n) (h : sol n a b c) :
     exact (Nat.lt_irrefl 0) this
   have ha1_pos : 0 < a1 := Nat.pos_of_ne_zero ha1_ne0
 
-
-
   -- Rewrite equation with a=2*a1 and b=2*b1.
   have h2 : 2 * (2 * a1)^n + 3 * (2 * b1)^n = 4 * c^n := by
     simpa [ha1_2, hb1_2] using sol_eqn h
-
-
 
   -- 3) c even
   have hc_even : Even c := by
@@ -224,8 +182,6 @@ lemma descent_step_ge3 {n a b c : ℕ} (hn : 3 ≤ n) (h : sol n a b c) :
     rcases h2_dvd_c with ⟨k, hk⟩
     exact ⟨k, by simpa [two_mul] using hk⟩
 
-
-
   -- Introduce c1 with c = 2*c1 (and show c1>0).
   rcases hc_even with ⟨c1, hc1⟩
   have hc1_2 : c = 2 * c1 := by
@@ -236,8 +192,6 @@ lemma descent_step_ge3 {n a b c : ℕ} (hn : 3 ≤ n) (h : sol n a b c) :
     have : (0 : ℕ) < 0 := by simpa [hc0] using hc_pos
     exact (Nat.lt_irrefl 0) this
   have hc1_pos : 0 < c1 := Nat.pos_of_ne_zero hc1_ne0
-
-
 
   -- 4) reduced equation for (a1,b1,c1) by expanding (2*x)^n and cancelling 2^n.
   have h_eqn' : 2 * a1^n + 3 * b1^n = 4 * c1^n := by
@@ -263,8 +217,6 @@ lemma descent_step_ge3 {n a b c : ℕ} (hn : 3 ≤ n) (h : sol n a b c) :
     -- Cancel the common (positive) factor 2^n.
     exact Nat.mul_left_cancel hpos heqn_fact
 
-
-
   -- 5) Package the smaller solution and prove the sum decreased.
   refine ⟨a1, b1, c1, ?_, ?_⟩
   · exact ⟨ha1_pos, hb1_pos, hc1_pos, h_eqn'⟩
@@ -281,8 +233,6 @@ lemma descent_step_ge3 {n a b c : ℕ} (hn : 3 ≤ n) (h : sol n a b c) :
       simpa [hsum] using this
     exact hlt
 
-
-
 /-- For `n ≥ 3`, there are no solutions at all. -/
 lemma no_solution_ge3 {n : ℕ} (hn : 3 ≤ n) :
     ¬ ∃ a b c, sol n a b c := by
@@ -291,89 +241,107 @@ lemma no_solution_ge3 {n : ℕ} (hn : 3 ≤ n) :
   -- Assume there exists at least one solution (a,b,c).
   intro h
 
-
-
   -- Define the property P(s): “there exists a solution whose sum a+b+c equals s”.
   let P : ℕ → Prop := fun s => ∃ a b c, sol n a b c ∧ a + b + c = s
-
-
 
   -- Show P is inhabited: from the assumed solution, take s = a+b+c.
   have hP : ∃ s, P s := by
     rcases h with ⟨a, b, c, hs⟩
     exact ⟨a + b + c, a, b, c, hs, rfl⟩
 
-
-
   -- Let s0 be the *least* natural number such that P(s0) holds.
   -- (Nat.find picks the smallest witness of an existential over ℕ.)
   let s0 := Nat.find hP
 
-
-
   -- By definition/spec of Nat.find, P(s0) holds.
   have hP0 : P s0 := Nat.find_spec hP
 
-
-
   -- Unpack P(s0): we get a specific solution (a0,b0,c0) whose sum is exactly s0.
   rcases hP0 with ⟨a0, b0, c0, hsol0, hsum0⟩
-
-
 
   -- Apply the “descent step”: from a solution when n≥3, we can construct a smaller one.
   -- This gives a new solution (a1,b1,c1) with strictly smaller sum.
   rcases descent_step_ge3 hn hsol0 with ⟨a1, b1, c1, hsol1, hlt⟩
 
-
-
   -- Turn that new solution into a witness that P holds at the new sum.
   have hP1 : P (a1 + b1 + c1) := ⟨a1, b1, c1, hsol1, rfl⟩
-
-
 
   -- Minimality property of Nat.find:
   -- if P(m) holds, then s0 ≤ m.
   have hmin := Nat.find_min' hP hP1
 
-
-
   -- Rewrite hlt using hsum0 : a0+b0+c0 = s0, to get the strict inequality “new sum < s0”.
   have : a1 + b1 + c1 < s0 := by
     simpa [hsum0] using hlt
 
-
-
   -- Now we have (a1+b1+c1) < s0 and also s0 ≤ (a1+b1+c1), contradiction.
   exact Nat.lt_irrefl _ (lt_of_lt_of_le this hmin)
-
-
-
 
 /-- For `n = 2`, there are no solutions (mod 3 + descent). -/
 lemma no_solution_n2 : ¬ ∃ a b c, sol 2 a b c := by
   classical
+  -- We prove this by contradiction + minimal counterexample, just like for n ≥ 3.
   intro h
+
+  -- Define the property P(s): “there exists an n=2 solution whose sum a+b+c equals s”.
   let P : ℕ → Prop := fun s => ∃ a b c, sol 2 a b c ∧ a + b + c = s
   have hP : ∃ s, P s := by
     rcases h with ⟨a, b, c, hs⟩
     exact ⟨a + b + c, a, b, c, hs, rfl⟩
+
+  -- Let s0 be the smallest sum for any n=2 solution.
   let s0 := Nat.find hP
   have hP0 : P s0 := Nat.find_spec hP
+
+  -- Unpack the minimal solution (a0, b0, c0).
   rcases hP0 with ⟨a0, b0, c0, hsol0, hsum0⟩
   have ha0_pos := sol_pos_a hsol0
   have hb0_pos := sol_pos_b hsol0
   have hc0_pos := sol_pos_c hsol0
   have heqn0 := sol_eqn hsol0
 
+  -- Overall plan (infinite descent step for n=2):
+  -- (1) show a is divisible by 3 (mod 3 argument),
+  -- (2) show c is divisible by 3 (mod 3 argument),
+  -- (3) substitute and show b is divisible by 3,
+  -- then write a = 3 * a1, b = 3 * b1, c = 3 * c1 and
+  -- divide out 9 to get a smaller solution, contradicting minimality.
 
+  -- 1) show a0 is divisible by 3
+  have ha0_div3 : 3 ∣ a0 := by
+    -- Cast the entire equation into ZMod 3 to do modular arithmetic cleanly.
+    have h_mod : ((2 * a0^2 + 3 * b0^2 : ℕ) : ZMod 3) = ((4 * c0^2 : ℕ) : ZMod 3) := by
+      rw [heqn0]
+    push_cast at h_mod
+    -- In ZMod 3, 3 ≡ 0 and 4 ≡ 1, which removes the 3*b0^2 term.
+    have h3 : (3 : ZMod 3) = 0 := rfl
+    have h4 : (4 : ZMod 3) = 1 := rfl
+    rw [h3, h4] at h_mod
+    simp only [zero_mul, add_zero, one_mul] at h_mod
+    -- Use `decide` to prove that 2*x^2 = y^2 in ZMod 3 forces x = 0.
+    have h_exhaust : ∀ (x y : ZMod 3), 2 * x^2 = y^2 → x = 0 := by decide
+    have ha_zero : (a0 : ZMod 3) = 0 := h_exhaust (a0 : ZMod 3) (c0 : ZMod 3) h_mod
+    -- Convert (a0 : ZMod 3) = 0 back to the natural number division 3 ∣ a0.
+    exact (CharP.cast_eq_zero_iff (ZMod 3) 3 a0).mp ha_zero
 
-  have ha0_div3 : 3 ∣ a0 := by sorry
-  have hc0_div3 : 3 ∣ c0 := by sorry
+  -- 2) show c0 is divisible by 3
+  have hc0_div3 : 3 ∣ c0 := by
+    -- We cast into ZMod 3 again using the exact same logic.
+    have h_mod : ((2 * a0^2 + 3 * b0^2 : ℕ) : ZMod 3) = ((4 * c0^2 : ℕ) : ZMod 3) := by
+      rw [heqn0]
+    push_cast at h_mod
+    have h3 : (3 : ZMod 3) = 0 := rfl
+    have h4 : (4 : ZMod 3) = 1 := rfl
+    rw [h3, h4] at h_mod
+    simp only [zero_mul, add_zero, one_mul] at h_mod
+    -- This time, we ask `decide` to confirm that 2*x^2 = y^2 forces y = 0.
+    have h_exhaust : ∀ (x y : ZMod 3), 2 * x^2 = y^2 → y = 0 := by decide
+    have hc_zero : (c0 : ZMod 3) = 0 := h_exhaust (a0 : ZMod 3) (c0 : ZMod 3) h_mod
+    exact (CharP.cast_eq_zero_iff (ZMod 3) 3 c0).mp hc_zero
+
+  -- Introduce a1 and c1, and show they are strictly positive.
   rcases ha0_div3 with ⟨a1, ha1⟩
   rcases hc0_div3 with ⟨c1, hc1⟩
-
-
 
   have ha1_ne0 : a1 ≠ 0 := by
     intro ha10
@@ -386,14 +354,38 @@ lemma no_solution_n2 : ¬ ∃ a b c, sol 2 a b c := by
     have : (0 : ℕ) < 0 := by simpa [hc0] using hc0_pos
     exact (Nat.lt_irrefl 0) this
 
-
-
   have ha1_pos : 0 < a1 := Nat.pos_of_ne_zero ha1_ne0
   have hc1_pos : 0 < c1 := Nat.pos_of_ne_zero hc1_ne0
 
+  -- 3) Substitute back to show b0 is divisible by 3
+  have hb0_div3 : 3 ∣ b0 := by
+    have h_eq : 2 * a0^2 + 3 * b0^2 = 4 * c0^2 := heqn0
+    -- Substitute a0 = 3*a1 and c0 = 3*c1.
+    rw [ha1, hc1] at h_eq
+    -- Factor out 3 on both sides.
+    have h_eq2 : 3 * (b0^2 + 6 * a1^2) = 3 * (12 * c1^2) := by
+      calc 3 * (b0^2 + 6 * a1^2)
+        _ = 2 * (3 * a1)^2 + 3 * b0^2 := by ring
+        _ = 4 * (3 * c1)^2 := h_eq
+        _ = 3 * (12 * c1^2) := by ring
+    -- Cancel the leading 3.
+    have h_eq3 : b0^2 + 6 * a1^2 = 12 * c1^2 :=
+      Nat.eq_of_mul_eq_mul_left (by decide) h_eq2
 
+    -- Now cast this reduced equation into ZMod 3.
+    have h_mod : ((b0^2 + 6 * a1^2 : ℕ) : ZMod 3) = ((12 * c1^2 : ℕ) : ZMod 3) := by
+      rw [h_eq3]
+    push_cast at h_mod
+    -- 6 and 12 are both 0 in ZMod 3, isolating b0^2 = 0.
+    have h6 : (6 : ZMod 3) = 0 := rfl
+    have h12 : (12 : ZMod 3) = 0 := rfl
+    rw [h6, h12] at h_mod
+    simp only [zero_mul, add_zero] at h_mod
+    have h_exhaust : ∀ (x : ZMod 3), x^2 = 0 → x = 0 := by decide
+    have hb_zero : (b0 : ZMod 3) = 0 := h_exhaust (b0 : ZMod 3) h_mod
+    exact (CharP.cast_eq_zero_iff (ZMod 3) 3 b0).mp hb_zero
 
-  have hb0_div3 : 3 ∣ b0 := by sorry
+  -- Introduce b1 and show it is strictly positive.
   rcases hb0_div3 with ⟨b1, hb1⟩
   have hb1_ne0 : b1 ≠ 0 := by
     intro hb10
@@ -402,24 +394,26 @@ lemma no_solution_n2 : ¬ ∃ a b c, sol 2 a b c := by
     exact (Nat.lt_irrefl 0) this
   have hb1_pos : 0 < b1 := Nat.pos_of_ne_zero hb1_ne0
 
-
-
+  -- 4) Package the smaller n=2 solution by dividing out 3^2 = 9.
   have h_eqn' : 2 * a1^2 + 3 * b1^2 = 4 * c1^2 := by
-    sorry
+    have h_eq : 2 * a0^2 + 3 * b0^2 = 4 * c0^2 := heqn0
+    rw [ha1, hb1, hc1] at h_eq
+    have h_eq2 : 9 * (2 * a1^2 + 3 * b1^2) = 9 * (4 * c1^2) := by
+      calc 9 * (2 * a1^2 + 3 * b1^2)
+        _ = 2 * (3 * a1)^2 + 3 * (3 * b1)^2 := by ring
+        _ = 4 * (3 * c1)^2 := h_eq
+        _ = 9 * (4 * c1^2) := by ring
+    exact Nat.eq_of_mul_eq_mul_left (by decide) h_eq2
+
   have hsol1 : sol 2 a1 b1 c1 := ⟨ha1_pos, hb1_pos, hc1_pos, h_eqn'⟩
 
-
-
+  -- 5) Prove the new solution sum is strictly smaller.
   have hsum : a0 + b0 + c0 = 3 * (a1 + b1 + c1) := by
     simp [ha1, hb1, hc1, Nat.mul_add]
-
-
 
   have hpos' : 0 < a1 + b1 + c1 := by
     have hab : 0 < a1 + b1 := add_pos ha1_pos hb1_pos
     simpa [Nat.add_assoc] using add_pos hab hc1_pos
-
-
 
   have hlt : a1 + b1 + c1 < a0 + b0 + c0 := by
     have : (1 : ℕ) * (a1 + b1 + c1) < 3 * (a1 + b1 + c1) :=
@@ -427,14 +421,11 @@ lemma no_solution_n2 : ¬ ∃ a b c, sol 2 a b c := by
     have : a1 + b1 + c1 < 3 * (a1 + b1 + c1) := by simpa using this
     simpa [hsum] using this
 
-
-
+  -- We found a strictly smaller sum, which contradicts the minimality of s0.
   have hP1 : P (a1 + b1 + c1) := ⟨a1, b1, c1, hsol1, rfl⟩
   have hmin := Nat.find_min' hP hP1
   have : a1 + b1 + c1 < s0 := by simpa [hsum0] using hlt
   exact Nat.lt_irrefl _ (lt_of_lt_of_le this hmin)
-
-
 
 /-- If there is a solution for `n > 0`, then `n = 1`. -/
 lemma n_eq_one_of_sol {n : ℕ}
@@ -458,8 +449,6 @@ lemma n_eq_one_of_sol {n : ℕ}
         have : ¬ ∃ a b c, sol (Nat.succ (Nat.succ (Nat.succ n3))) a b c :=
           no_solution_ge3 hn
         exact (this (by simpa using h)).elim
-
-
 
 /--
 Determine all positive integers `n` for which there exist positive integers `a`, `b` and `c`
