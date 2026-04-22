@@ -3,6 +3,10 @@ import Mathlib
 set_option linter.unnecessarySimpa false
 set_option linter.style.emptyLine false
 
+
+/-- Author: Mohamed Khalil Abbes -/
+
+
 noncomputable abbrev putnam_2024_a1_solution : Set ℕ := {1}
 
 /--
@@ -273,92 +277,155 @@ lemma no_solution_ge3 {n : ℕ} (hn : 3 ≤ n) :
   -- Now we have (a1+b1+c1) < s0 and also s0 ≤ (a1+b1+c1), contradiction.
   exact Nat.lt_irrefl _ (lt_of_lt_of_le this hmin)
 
-
 /-- For `n = 2`, there are no solutions (mod 3 + descent). -/
 lemma no_solution_n2 : ¬ ∃ a b c, sol 2 a b c := by
   classical
+  -- We prove this by contradiction + minimal counterexample, just like for n ≥ 3.
   intro h
-  -- Standard infinite descent setup (Minimal Counterexample)
+
+  -- Define the property P(s): “there exists an n=2 solution whose sum a+b+c equals s”.
   let P : ℕ → Prop := fun s => ∃ a b c, sol 2 a b c ∧ a + b + c = s
   have hP : ∃ s, P s := by
     rcases h with ⟨a, b, c, hs⟩
     exact ⟨a + b + c, a, b, c, hs, rfl⟩
+
+  -- Let s0 be the smallest sum for any n=2 solution.
   let s0 := Nat.find hP
   have hP0 : P s0 := Nat.find_spec hP
-  rcases hP0 with ⟨a0, b0, c0, hsol0, hsum0⟩
 
-  -- Unpack the solution
+  -- Unpack the minimal solution (a0, b0, c0).
+  rcases hP0 with ⟨a0, b0, c0, hsol0, hsum0⟩
   have ha0_pos := sol_pos_a hsol0
   have hb0_pos := sol_pos_b hsol0
   have hc0_pos := sol_pos_c hsol0
-  have heqn0 : 2 * a0^2 + 3 * b0^2 = 4 * c0^2 := sol_eqn hsol0
+  have heqn0 := sol_eqn hsol0
 
-  -- -----------------------------------------------------------
-  -- TODO: Implement Mod 3 arithmetic here.
-  -- Current strategy:
-  -- 1. 2a^2 + 3b^2 = 4c^2 implies 2a^2 ≡ c^2 (mod 3)
-  -- 2. Squares mod 3 are 0 or 1.
-  -- 3. If a ≢ 0, a^2 ≡ 1 => 2 ≡ c^2 (mod 3), impossible.
-  -- 4. Therefore 3|a and 3|c.
-  -- -----------------------------------------------------------
+  -- Overall plan (infinite descent step for n=2):
+  -- (1) show a is divisible by 3 (mod 3 argument),
+  -- (2) show c is divisible by 3 (mod 3 argument),
+  -- (3) substitute and show b is divisible by 3,
+  -- then write a = 3 * a1, b = 3 * b1, c = 3 * c1 and
+  -- divide out 9 to get a smaller solution, contradicting minimality.
 
+  -- 1) show a0 is divisible by 3
   have ha0_div3 : 3 ∣ a0 := by
-    -- Need to import ZMod or use Nat.mod_eq?
-    -- Struggling to simplify the modulo arithmetic here.
-    sorry
+    -- Cast the entire equation into ZMod 3 to do modular arithmetic cleanly.
+    have h_mod : ((2 * a0^2 + 3 * b0^2 : ℕ) : ZMod 3) = ((4 * c0^2 : ℕ) : ZMod 3) := by
+      rw [heqn0]
+    push_cast at h_mod
+    -- In ZMod 3, 3 ≡ 0 and 4 ≡ 1, which removes the 3*b0^2 term.
+    have h3 : (3 : ZMod 3) = 0 := rfl
+    have h4 : (4 : ZMod 3) = 1 := rfl
+    rw [h3, h4] at h_mod
+    simp only [zero_mul, add_zero, one_mul] at h_mod
+    -- Use `decide` to prove that 2*x^2 = y^2 in ZMod 3 forces x = 0.
+    have h_exhaust : ∀ (x y : ZMod 3), 2 * x^2 = y^2 → x = 0 := by decide
+    have ha_zero : (a0 : ZMod 3) = 0 := h_exhaust (a0 : ZMod 3) (c0 : ZMod 3) h_mod
+    -- Convert (a0 : ZMod 3) = 0 back to the natural number division 3 ∣ a0.
+    exact (CharP.cast_eq_zero_iff (ZMod 3) 3 a0).mp ha_zero
 
+  -- 2) show c0 is divisible by 3
   have hc0_div3 : 3 ∣ c0 := by
-    -- Similar logic to above, need to formalize "squares mod 3"
-    sorry
+    -- We cast into ZMod 3 again using the exact same logic.
+    have h_mod : ((2 * a0^2 + 3 * b0^2 : ℕ) : ZMod 3) = ((4 * c0^2 : ℕ) : ZMod 3) := by
+      rw [heqn0]
+    push_cast at h_mod
+    have h3 : (3 : ZMod 3) = 0 := rfl
+    have h4 : (4 : ZMod 3) = 1 := rfl
+    rw [h3, h4] at h_mod
+    simp only [zero_mul, add_zero, one_mul] at h_mod
+    -- This time, we ask `decide` to confirm that 2*x^2 = y^2 forces y = 0.
+    have h_exhaust : ∀ (x y : ZMod 3), 2 * x^2 = y^2 → y = 0 := by decide
+    have hc_zero : (c0 : ZMod 3) = 0 := h_exhaust (a0 : ZMod 3) (c0 : ZMod 3) h_mod
+    exact (CharP.cast_eq_zero_iff (ZMod 3) 3 c0).mp hc_zero
 
-  -- Extract the factors (a0 = 3a1, c0 = 3c1)
+  -- Introduce a1 and c1, and show they are strictly positive.
   rcases ha0_div3 with ⟨a1, ha1⟩
   rcases hc0_div3 with ⟨c1, hc1⟩
 
-  -- Step 2: Show b must be divisible by 3
-  -- Substitution: 2*(3a1)^2 + 3*b0^2 = 4*(3c1)^2
-  -- Reduces to: 6*a1^2 + b0^2 = 12*c1^2
-  -- Mod 3 implies b0^2 ≡ 0 (mod 3)
+  have ha1_ne0 : a1 ≠ 0 := by
+    intro ha10
+    have ha0 : a0 = 0 := by simpa [ha1, ha10]
+    have : (0 : ℕ) < 0 := by simpa [ha0] using ha0_pos
+    exact (Nat.lt_irrefl 0) this
+  have hc1_ne0 : c1 ≠ 0 := by
+    intro hc10
+    have hc0 : c0 = 0 := by simpa [hc1, hc10]
+    have : (0 : ℕ) < 0 := by simpa [hc0] using hc0_pos
+    exact (Nat.lt_irrefl 0) this
+
+  have ha1_pos : 0 < a1 := Nat.pos_of_ne_zero ha1_ne0
+  have hc1_pos : 0 < c1 := Nat.pos_of_ne_zero hc1_ne0
+
+  -- 3) Substitute back to show b0 is divisible by 3
   have hb0_div3 : 3 ∣ b0 := by
-    rw [ha1, hc1] at heqn0
-    -- Need a tactic to simplify powers and divide by 3
-    sorry
+    have h_eq : 2 * a0^2 + 3 * b0^2 = 4 * c0^2 := heqn0
+    -- Substitute a0 = 3*a1 and c0 = 3*c1.
+    rw [ha1, hc1] at h_eq
+    -- Factor out 3 on both sides.
+    have h_eq2 : 3 * (b0^2 + 6 * a1^2) = 3 * (12 * c1^2) := by
+      calc 3 * (b0^2 + 6 * a1^2)
+        _ = 2 * (3 * a1)^2 + 3 * b0^2 := by ring
+        _ = 4 * (3 * c1)^2 := h_eq
+        _ = 3 * (12 * c1^2) := by ring
+    -- Cancel the leading 3.
+    have h_eq3 : b0^2 + 6 * a1^2 = 12 * c1^2 :=
+      Nat.eq_of_mul_eq_mul_left (by decide) h_eq2
 
+    -- Now cast this reduced equation into ZMod 3.
+    have h_mod : ((b0^2 + 6 * a1^2 : ℕ) : ZMod 3) = ((12 * c1^2 : ℕ) : ZMod 3) := by
+      rw [h_eq3]
+    push_cast at h_mod
+    -- 6 and 12 are both 0 in ZMod 3, isolating b0^2 = 0.
+    have h6 : (6 : ZMod 3) = 0 := rfl
+    have h12 : (12 : ZMod 3) = 0 := rfl
+    rw [h6, h12] at h_mod
+    simp only [zero_mul, add_zero] at h_mod
+    have h_exhaust : ∀ (x : ZMod 3), x^2 = 0 → x = 0 := by decide
+    have hb_zero : (b0 : ZMod 3) = 0 := h_exhaust (b0 : ZMod 3) h_mod
+    exact (CharP.cast_eq_zero_iff (ZMod 3) 3 b0).mp hb_zero
+
+  -- Introduce b1 and show it is strictly positive.
   rcases hb0_div3 with ⟨b1, hb1⟩
+  have hb1_ne0 : b1 ≠ 0 := by
+    intro hb10
+    have hb0 : b0 = 0 := by simpa [hb1, hb10]
+    have : (0 : ℕ) < 0 := by simpa [hb0] using hb0_pos
+    exact (Nat.lt_irrefl 0) this
+  have hb1_pos : 0 < b1 := Nat.pos_of_ne_zero hb1_ne0
 
-  -- Check positivity of new variables (boilerplate)
-  have ha1_pos : 0 < a1 := by
-    -- a0 > 0 and a0 = 3a1 implies a1 > 0
-    sorry
-  have hb1_pos : 0 < b1 := by sorry
-  have hc1_pos : 0 < c1 := by sorry
-
-  -- Step 3: Construct the smaller solution equation
-  -- 2(3a1)^2 + 3(3b1)^2 = 4(3c1)^2
-  -- 18a1^2 + 27b1^2 = 36c1^2
-  -- Divide entire equation by 9
+  -- 4) Package the smaller n=2 solution by dividing out 3^2 = 9.
   have h_eqn' : 2 * a1^2 + 3 * b1^2 = 4 * c1^2 := by
-    rw [ha1, hb1, hc1] at heqn0
-    -- Algebra verification needed here
-    sorry
+    have h_eq : 2 * a0^2 + 3 * b0^2 = 4 * c0^2 := heqn0
+    rw [ha1, hb1, hc1] at h_eq
+    have h_eq2 : 9 * (2 * a1^2 + 3 * b1^2) = 9 * (4 * c1^2) := by
+      calc 9 * (2 * a1^2 + 3 * b1^2)
+        _ = 2 * (3 * a1)^2 + 3 * (3 * b1)^2 := by ring
+        _ = 4 * (3 * c1)^2 := h_eq
+        _ = 9 * (4 * c1^2) := by ring
+    exact Nat.eq_of_mul_eq_mul_left (by decide) h_eq2
 
-  -- Package the new solution
   have hsol1 : sol 2 a1 b1 c1 := ⟨ha1_pos, hb1_pos, hc1_pos, h_eqn'⟩
 
-  -- Step 4: Show the sum is strictly smaller
+  -- 5) Prove the new solution sum is strictly smaller.
   have hsum : a0 + b0 + c0 = 3 * (a1 + b1 + c1) := by
-    rw [ha1, hb1, hc1]
-    ring
+    simp [ha1, hb1, hc1, Nat.mul_add]
 
-  have hlt : a1 + b1 + c1 < s0 := by
-    rw [←hsum0, hsum]
-    -- n < 3n is true for positive n
-    sorry
+  have hpos' : 0 < a1 + b1 + c1 := by
+    have hab : 0 < a1 + b1 := add_pos ha1_pos hb1_pos
+    simpa [Nat.add_assoc] using add_pos hab hc1_pos
 
-  -- Final contradiction with the minimal counterexample
+  have hlt : a1 + b1 + c1 < a0 + b0 + c0 := by
+    have : (1 : ℕ) * (a1 + b1 + c1) < 3 * (a1 + b1 + c1) :=
+      Nat.mul_lt_mul_of_pos_right (by decide : (1 : ℕ) < 3) hpos'
+    have : a1 + b1 + c1 < 3 * (a1 + b1 + c1) := by simpa using this
+    simpa [hsum] using this
+
+  -- We found a strictly smaller sum, which contradicts the minimality of s0.
   have hP1 : P (a1 + b1 + c1) := ⟨a1, b1, c1, hsol1, rfl⟩
   have hmin := Nat.find_min' hP hP1
-  exact Nat.lt_irrefl _ (lt_of_lt_of_le hlt hmin)
+  have : a1 + b1 + c1 < s0 := by simpa [hsum0] using hlt
+  exact Nat.lt_irrefl _ (lt_of_lt_of_le this hmin)
 
 /-- If there is a solution for `n > 0`, then `n = 1`. -/
 lemma n_eq_one_of_sol {n : ℕ}
