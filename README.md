@@ -1,10 +1,7 @@
 # Formalization of Putnam 2024 A1
 
-**Course Type:** Seminar, Saarland University  
-**Instructors:** Alexander Ikonomou and Leon Pernak
-
 ## Project Context
-This repository contains my final project for the mathematics formalization seminar. The goal of the project was to write a computer-verified proof for the **William Lowell Putnam Mathematical Competition 2024, Problem A1**, using the Lean 4 theorem prover. 
+The goal of the project was to write a computer-verified proof for the **William Lowell Putnam Mathematical Competition 2024, Problem A1**, using the Lean 4 theorem prover. 
 
 **Provided by the University:**
 The course provided the theoretical foundation for using Lean 4 and guidelines for formalizing mathematics.
