@@ -3,9 +3,6 @@
 ## Project Context
 The goal of the project was to write a computer-verified proof for the **William Lowell Putnam Mathematical Competition 2024, Problem A1**, using the Lean 4 theorem prover. 
 
-**Provided by the University:**
-The course provided the theoretical foundation for using Lean 4 and guidelines for formalizing mathematics.
-
 **Implemented by Me:**
 While the mathematical solution to this problem is publicly available online, my contribution was purely the **formalization** of this proof. I translated the existing informal mathematical logic into strict, computer-verified Lean 4 code, ensuring the Diophantine equation $2a^n + 3b^n = 4c^n$ has no positive integer solutions for $n \ge 2$. I completed the full implementation without any remaining gaps (`sorry` blocks) and documented the formalization effort.
 
